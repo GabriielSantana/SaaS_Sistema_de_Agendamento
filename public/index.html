@@ -1,0 +1,65 @@
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Studio Lash | Agendamento</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Studio lash Designer</h1>
+    <h4>O seu olhar mais profundo</h4>
+    <p>Agende seus serviços de sobrancelhas e cílios</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Faça seu agendamento</h2>
+      <form id="booking-form">
+        <div class="row">
+          <label for="service">Serviço</label>
+          <select id="service" required></select>
+        </div>
+
+        <div class="row">
+          <label for="date">Data</label>
+          <input type="date" id="date" required />
+        </div>
+
+        <div class="row">
+          <label>Horário</label>
+          <div id="slots" class="slots">Selecione o serviço e a data</div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label for="name">Seu nome</label>
+            <input type="text" id="name" placeholder="Nome completo" required />
+          </div>
+          <div>
+            <label for="phone">Seu WhatsApp</label>
+            <input type="tel" id="phone" placeholder="(DDD) 9 0000-0000" />
+          </div>
+        </div>
+
+        <div class="row">
+          <label for="notes">Observações (opcional)</label>
+          <textarea id="notes" rows="3" placeholder="Ex.: alergias, preferências..."></textarea>
+        </div>
+
+        <button type="submit" id="submit-btn">Confirmar agendamento</button>
+      </form>
+
+      <div id="result" class="result" hidden></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© <span id="year"></span> Studio Lash Designe. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

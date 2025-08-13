@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cancelar Agendamento - Studio Lash</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      color: #111827;
+    }
+
+    .container {
+      background: #fff;
+      padding: 2rem 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgb(0 0 0 / 0.1);
+      width: 100%;
+      max-width: 480px;
+    }
+
+    h1 {
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+      font-size: 1.8rem;
+      color: #111827;
+      text-align: center;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      display: block;
+      color: #374151;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 5px #2563ebaa;
+    }
+
+    button {
+      background-color: #2563eb;
+      color: white;
+      font-weight: 600;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.2s;
+      user-select: none;
+    }
+
+    button:hover {
+      background-color: #1e40af;
+    }
+
+    #message {
+      margin-top: 1rem;
+      font-weight: 600;
+      min-height: 1.5em;
+    }
+
+    #message.error {
+      color: #dc2626;
+    }
+
+    #message.success {
+      color: #16a34a;
+    }
+
+    ul#booking-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+      max-height: 300px;
+      overflow-y: auto;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    ul#booking-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 1rem;
+      color: #374151;
+    }
+
+    ul#booking-list li button {
+      background-color: #ef4444;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+      border-radius: 6px;
+    }
+
+    ul#booking-list li button:hover {
+      background-color: #b91c1c;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 1rem;
+      }
+      .container {
+        padding: 1.5rem 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cancelar Agendamento</h1>
+    <label for="phone">Digite seu telefone (somente números, ex: 5511989924862):</label>
+    <input type="text" id="phone" maxlength="13" placeholder="Telefone" />
+    <button id="search-btn">Buscar Agendamentos</button>
+    <div id="message"></div>
+    <ul id="booking-list"></ul>
+  </div>
+
+  <script>
+    const searchBtn = document.getElementById('search-btn');
+    const phoneInput = document.getElementById('phone');
+    const bookingList = document.getElementById('booking-list');
+    const messageDiv = document.getElementById('message');
+
+    function formatDateBR(dateStr) {
+      const [year, month, day] = dateStr.split('-');
+      return `${day}/${month}/${year}`;
+    }
+
+    function clearResults() {
+      bookingList.innerHTML = '';
+      messageDiv.textContent = '';
+      messageDiv.className = '';
+    }
+
+    async function fetchBookings() {
+  clearResults();
+  const phone = phoneInput.value.trim().replace(/\D/g, '');
+  if (!phone) {
+    messageDiv.textContent = 'Por favor, insira um telefone válido.';
+    messageDiv.className = 'error';
+    return;
+  }
+  messageDiv.textContent = 'Buscando agendamentos...';
+  messageDiv.className = '';
+  try {
+    const res = await fetch(`/api/bookings?phone=${phone}`);
+    if (!res.ok) throw new Error('Erro ao buscar agendamentos.');
+    const bookings = await res.json();
+    if (bookings.length === 0) {
+      messageDiv.textContent = 'Nenhum agendamento encontrado para este telefone.';
+      return;
+    }
+    messageDiv.textContent = '';
+    bookings.forEach(b => {
+      const li = document.createElement('li');
+      li.textContent = `${b.service_name} — ${formatDateBR(b.date)} às ${b.start_time}`;
+      const btn = document.createElement('button');
+      btn.textContent = 'Cancelar';
+      btn.addEventListener('click', () => cancelBooking(b.id, li));
+      li.appendChild(btn);
+      bookingList.appendChild(li);
+    });
+  } catch (e) {
+    messageDiv.textContent = e.message;
+    messageDiv.className = 'error';
+  }
+}
+
+
+    async function cancelBooking(id, listItem) {
+      if (!confirm('Deseja cancelar este agendamento?')) return;
+      try {
+        const res = await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Erro ao cancelar agendamento.');
+        const data = await res.json();
+        if (data.success) {
+          listItem.remove();
+          messageDiv.textContent = 'Agendamento cancelado com sucesso.';
+          messageDiv.className = 'success';
+          if (bookingList.children.length === 0) {
+            messageDiv.textContent += ' Nenhum agendamento restante.';
+          }
+        }
+      } catch (e) {
+        messageDiv.textContent = e.message;
+        messageDiv.className = 'error';
+      }
+    }
+
+    searchBtn.addEventListener('click', fetchBookings);
+  </script>
+</body>
+</html>
